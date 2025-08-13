@@ -1,32 +1,55 @@
-# movie_stream_app
+# Movie Stream App
 
-A new Flutter project.
+Minimal production Flutter app (OMDb API) with search, filters, favorites, rich detail view. Bloc + Clean Architecture.
 
-## Getting Started
+## Features
 
-This project is a starting point for a Flutter application.
+- Search with type/year filters
+- Infinite scroll (list / grid toggle)
+- Detailed screen (ratings, metadata, watchlist)
+- Favorites persisted locally
+- Shimmer skeleton loading
 
-A few resources to get you started if this is your first Flutter project:
+## Tech Stack
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- Flutter (Material 3, dark theme)
+- Bloc state management
+- Clean Architecture (domain / data / presentation)
+- Shared Preferences for favorites
+- http + dotenv (OMDb API)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Structure (essentials)
 
-## Project structure (canonical paths)
+```text
+lib/
+	main.dart            App wiring (providers, blocs)
+	src/
+		core/              constants, theme, misc core
+		data/              models, datasources (remote/local), repositories impl
+		domain/            entities, abstract repos, usecases
+		logic/             blocs (movie_search, movie_detail, favorites, filter)
+		presentation/      ui (home, search, detail, favorites, shared widgets)
+```
 
-This app uses a feature-first, production-grade Bloc architecture. Use these canonical paths when adding or referencing UI:
+## Environment
 
-- Pages: `lib/src/features/movies/presentation/pages/*`
-- Widgets: `lib/src/features/movies/presentation/widgets/*`
+Create `.env`:
 
-Legacy shims under `lib/src/presentation/screens` and `lib/src/presentation/widgets` have been removed. Keep `MainPage` and `ProfileScreen` under `lib/src/presentation/screens/` for app shell/navigation only.
+```env
+OMDB_BASE_URL=https://www.omdbapi.com/
+OMDB_API_KEY=YOUR_KEY_HERE
+```
 
-Bloc state management (events/states/Bloc only) lives under:
+Never commit real keys (add `.env` to `.gitignore`).
 
-- `lib/src/features/movies/logic/bloc/<feature>/`
- 	- Barrel files: `movie_search.dart`, `movie_detail.dart`, `favorites.dart`, `filter.dart`
+## Setup
 
-Repositories, use cases, and data sources follow Clean Architecture in `src/data` and `src/domain`.
+```bash
+flutter pub get
+```
+
+## Run
+
+```bash
+flutter run -d <device-id>
+```
