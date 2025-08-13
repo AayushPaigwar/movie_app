@@ -1,26 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:movie_stream_app/src/presentation/favorites/ui/enhanced_favorites_screen.dart';
+import 'package:movie_stream_app/src/presentation/home/ui/home_screen.dart';
+import 'package:movie_stream_app/src/presentation/profile/ui/profile_screen.dart';
+import 'package:movie_stream_app/src/presentation/search/ui/search_screen.dart';
 
-import 'favorites_screen.dart';
-import 'home_screen.dart';
-import 'profile_screen.dart';
-import 'search_screen.dart';
-
-class MainPage extends ConsumerStatefulWidget {
+class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
   @override
-  ConsumerState<MainPage> createState() => _MainPageState();
+  State<MainPage> createState() => _MainPageState();
 }
 
-class _MainPageState extends ConsumerState<MainPage> {
+class _MainPageState extends State<MainPage> {
   int _index = 0;
 
-  final _pages = const [
-    HomeScreen(),
-    SearchScreen(),
-    FavoritesScreen(),
-    ProfileScreen(),
+  final _pages = [
+    const HomeScreen(),
+    const SearchScreen(),
+    const EnhancedFavoritesScreen(),
+    const ProfileScreen(),
   ];
 
   @override

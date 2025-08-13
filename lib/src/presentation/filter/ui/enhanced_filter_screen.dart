@@ -1,81 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import '../../core/providers/movie_provider.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_typography.dart';
-import '../../core/constants/app_constants.dart';
+import 'package:movie_stream_app/src/core/constants/app_constants.dart';
+import 'package:movie_stream_app/src/core/theme/app_colors.dart';
+import 'package:movie_stream_app/src/core/theme/app_typography.dart';
+import 'package:movie_stream_app/src/logic/filter/filter_bloc.dart';
+import 'package:movie_stream_app/src/logic/filter/filter_event.dart';
+import 'package:movie_stream_app/src/logic/filter/filter_state.dart';
+import 'package:movie_stream_app/src/logic/movie_search/movie_search_bloc.dart';
+import 'package:movie_stream_app/src/logic/movie_search/movie_search_event.dart';
 
-// Filter state provider
-final filterStateProvider = StateNotifierProvider<FilterNotifier, FilterState>((ref) {
-  return FilterNotifier();
-});
-
-class FilterState {
-  final String? selectedType;
-  final String? selectedYear;
-  final String? selectedGenre;
-  final String query;
-
-  const FilterState({
-    this.selectedType,
-    this.selectedYear,
-    this.selectedGenre,
-    this.query = '',
-  });
-
-  FilterState copyWith({
-    String? selectedType,
-    String? selectedYear,
-    String? selectedGenre,
-    String? query,
-  }) {
-    return FilterState(
-      selectedType: selectedType ?? this.selectedType,
-      selectedYear: selectedYear ?? this.selectedYear,
-      selectedGenre: selectedGenre ?? this.selectedGenre,
-      query: query ?? this.query,
-    );
-  }
-}
-
-class FilterNotifier extends StateNotifier<FilterState> {
-  FilterNotifier() : super(const FilterState());
-
-  void updateType(String? type) {
-    state = state.copyWith(selectedType: type);
-  }
-
-  void updateYear(String? year) {
-    state = state.copyWith(selectedYear: year);
-  }
-
-  void updateGenre(String? genre) {
-    state = state.copyWith(selectedGenre: genre);
-  }
-
-  void updateQuery(String query) {
-    state = state.copyWith(query: query);
-  }
-
-  void reset() {
-    state = const FilterState();
-  }
-}
-
-class EnhancedFilterScreen extends ConsumerStatefulWidget {
+class EnhancedFilterScreen extends StatefulWidget {
   final String? initialQuery;
 
-  const EnhancedFilterScreen({
-    super.key,
-    this.initialQuery,
-  });
+  const EnhancedFilterScreen({super.key, this.initialQuery});
 
   @override
-  ConsumerState<EnhancedFilterScreen> createState() => _EnhancedFilterScreenState();
+  State<EnhancedFilterScreen> createState() => _EnhancedFilterScreenState();
 }
 
-class _EnhancedFilterScreenState extends ConsumerState<EnhancedFilterScreen>
+class _EnhancedFilterScreenState extends State<EnhancedFilterScreen>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -89,7 +33,9 @@ class _EnhancedFilterScreenState extends ConsumerState<EnhancedFilterScreen>
     if (widget.initialQuery != null) {
       _queryController.text = widget.initialQuery!;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(filterStateProvider.notifier).updateQuery(widget.initialQuery!);
+        context.read<FilterBloc>().add(
+          FilterQueryUpdated(widget.initialQuery!),
+        );
       });
     }
   }
@@ -104,12 +50,13 @@ class _EnhancedFilterScreenState extends ConsumerState<EnhancedFilterScreen>
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0.0, 0.1),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0.0, 0.1), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
 
     _animationController.forward();
   }
@@ -123,7 +70,7 @@ class _EnhancedFilterScreenState extends ConsumerState<EnhancedFilterScreen>
 
   @override
   Widget build(BuildContext context) {
-    final filterState = ref.watch(filterStateProvider);
+    final filterState = context.watch<FilterBloc>().state;
 
     return Scaffold(
       body: Container(
@@ -145,7 +92,9 @@ class _EnhancedFilterScreenState extends ConsumerState<EnhancedFilterScreen>
                   Expanded(
                     child: AnimationLimiter(
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                        padding: const EdgeInsets.all(
+                          AppConstants.paddingLarge,
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -156,7 +105,9 @@ class _EnhancedFilterScreenState extends ConsumerState<EnhancedFilterScreen>
                             _buildYearSection(filterState),
                             const SizedBox(height: AppConstants.paddingLarge),
                             _buildGenreSection(filterState),
-                            const SizedBox(height: AppConstants.paddingExtraLarge),
+                            const SizedBox(
+                              height: AppConstants.paddingExtraLarge,
+                            ),
                             _buildActionButtons(filterState),
                           ],
                         ),
@@ -255,15 +206,14 @@ class _EnhancedFilterScreenState extends ConsumerState<EnhancedFilterScreen>
               ),
               decoration: InputDecoration(
                 hintText: 'Enter movie, series, or episode name...',
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: AppColors.primary,
-                ),
+                prefixIcon: const Icon(Icons.search, color: AppColors.primary),
                 suffixIcon: _queryController.text.isNotEmpty
                     ? IconButton(
                         onPressed: () {
                           _queryController.clear();
-                          ref.read(filterStateProvider.notifier).updateQuery('');
+                          context.read<FilterBloc>().add(
+                            const FilterQueryUpdated(''),
+                          );
                         },
                         icon: const Icon(
                           Icons.clear,
@@ -273,7 +223,7 @@ class _EnhancedFilterScreenState extends ConsumerState<EnhancedFilterScreen>
                     : null,
               ),
               onChanged: (value) {
-                ref.read(filterStateProvider.notifier).updateQuery(value);
+                context.read<FilterBloc>().add(FilterQueryUpdated(value));
               },
             ),
           ),
@@ -301,22 +251,28 @@ class _EnhancedFilterScreenState extends ConsumerState<EnhancedFilterScreen>
                   label: Text(
                     type.toUpperCase(),
                     style: AppTypography.chipLabel.copyWith(
-                      color: isSelected ? AppColors.onPrimary : AppColors.onSurface,
+                      color: isSelected
+                          ? AppColors.onPrimary
+                          : AppColors.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   selected: isSelected,
                   onSelected: (selected) {
-                    ref.read(filterStateProvider.notifier).updateType(
-                      selected ? type : null,
+                    context.read<FilterBloc>().add(
+                      FilterTypeUpdated(selected ? type : null),
                     );
                   },
                   backgroundColor: AppColors.surfaceContainer,
                   selectedColor: AppColors.primary,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppConstants.radiusExtraLarge),
+                    borderRadius: BorderRadius.circular(
+                      AppConstants.radiusExtraLarge,
+                    ),
                     side: BorderSide(
-                      color: isSelected ? AppColors.primary : Colors.transparent,
+                      color: isSelected
+                          ? AppColors.primary
+                          : Colors.transparent,
                       width: 1.5,
                     ),
                   ),
@@ -350,22 +306,30 @@ class _EnhancedFilterScreenState extends ConsumerState<EnhancedFilterScreen>
                   label: Text(
                     year,
                     style: AppTypography.chipLabel.copyWith(
-                      color: isSelected ? AppColors.onPrimary : AppColors.onSurface,
+                      color: isSelected
+                          ? AppColors.onPrimary
+                          : AppColors.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   selected: isSelected,
                   onSelected: (selected) {
-                    ref.read(filterStateProvider.notifier).updateYear(
-                      selected && year != 'All Years' ? year : null,
+                    context.read<FilterBloc>().add(
+                      FilterYearUpdated(
+                        selected && year != 'All Years' ? year : null,
+                      ),
                     );
                   },
                   backgroundColor: AppColors.surfaceContainer,
                   selectedColor: AppColors.primary,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppConstants.radiusExtraLarge),
+                    borderRadius: BorderRadius.circular(
+                      AppConstants.radiusExtraLarge,
+                    ),
                     side: BorderSide(
-                      color: isSelected ? AppColors.primary : Colors.transparent,
+                      color: isSelected
+                          ? AppColors.primary
+                          : Colors.transparent,
                       width: 1.5,
                     ),
                   ),
@@ -399,22 +363,30 @@ class _EnhancedFilterScreenState extends ConsumerState<EnhancedFilterScreen>
                   label: Text(
                     genre,
                     style: AppTypography.chipLabel.copyWith(
-                      color: isSelected ? AppColors.onPrimary : AppColors.onSurface,
+                      color: isSelected
+                          ? AppColors.onPrimary
+                          : AppColors.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   selected: isSelected,
                   onSelected: (selected) {
-                    ref.read(filterStateProvider.notifier).updateGenre(
-                      selected && genre != 'All' ? genre : null,
+                    context.read<FilterBloc>().add(
+                      FilterGenreUpdated(
+                        selected && genre != 'All' ? genre : null,
+                      ),
                     );
                   },
                   backgroundColor: AppColors.surfaceContainer,
                   selectedColor: AppColors.primary,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppConstants.radiusExtraLarge),
+                    borderRadius: BorderRadius.circular(
+                      AppConstants.radiusExtraLarge,
+                    ),
                     side: BorderSide(
-                      color: isSelected ? AppColors.primary : Colors.transparent,
+                      color: isSelected
+                          ? AppColors.primary
+                          : Colors.transparent,
                       width: 1.5,
                     ),
                   ),
@@ -430,10 +402,11 @@ class _EnhancedFilterScreenState extends ConsumerState<EnhancedFilterScreen>
   }
 
   Widget _buildActionButtons(FilterState state) {
-    final hasFilters = state.selectedType != null || 
-                      state.selectedYear != null || 
-                      state.selectedGenre != null ||
-                      state.query.isNotEmpty;
+    final hasFilters =
+        state.selectedType != null ||
+        state.selectedYear != null ||
+        state.selectedGenre != null ||
+        state.query.isNotEmpty;
 
     return AnimationConfiguration.staggeredList(
       position: 5,
@@ -455,7 +428,9 @@ class _EnhancedFilterScreenState extends ConsumerState<EnhancedFilterScreen>
                       vertical: AppConstants.paddingLarge,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.radiusLarge,
+                      ),
                     ),
                   ),
                 ),
@@ -473,7 +448,9 @@ class _EnhancedFilterScreenState extends ConsumerState<EnhancedFilterScreen>
                       vertical: AppConstants.paddingLarge,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.radiusLarge,
+                      ),
                     ),
                   ),
                 ),
@@ -518,13 +495,15 @@ class _EnhancedFilterScreenState extends ConsumerState<EnhancedFilterScreen>
   }
 
   void _applyFilters() {
-    final state = ref.read(filterStateProvider);
+    final state = context.read<FilterBloc>().state;
     final query = state.query.isNotEmpty ? state.query : 'movie';
-    
-    // Apply search with filters
-    ref.read(movieSearchProvider.notifier).searchMovies(query);
-    
-    // Navigate back with results
+    context.read<MovieSearchBloc>().add(
+      MovieSearchRequested(
+        query,
+        type: state.selectedType,
+        year: state.selectedYear,
+      ),
+    );
     Navigator.of(context).pop({
       'query': query,
       'type': state.selectedType,
@@ -534,7 +513,7 @@ class _EnhancedFilterScreenState extends ConsumerState<EnhancedFilterScreen>
   }
 
   void _resetFilters() {
-    ref.read(filterStateProvider.notifier).reset();
+    context.read<FilterBloc>().add(const FilterReset());
     _queryController.clear();
   }
 }

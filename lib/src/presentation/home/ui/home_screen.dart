@@ -1,28 +1,28 @@
 import 'package:carousel_slider_plus/carousel_slider_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:movie_stream_app/src/core/constants/app_constants.dart';
+import 'package:movie_stream_app/src/core/theme/app_colors.dart';
+import 'package:movie_stream_app/src/core/theme/app_typography.dart';
+import 'package:movie_stream_app/src/logic/movie_search/movie_search_bloc.dart';
+import 'package:movie_stream_app/src/logic/movie_search/movie_search_event.dart';
+import 'package:movie_stream_app/src/presentation/filter/ui/enhanced_filter_screen.dart';
+import 'package:movie_stream_app/src/presentation/movie_detail/ui/enhanced_movie_detail_screen.dart';
+import 'package:movie_stream_app/src/presentation/shared/widgets/app_search_bar.dart';
+import 'package:movie_stream_app/src/presentation/shared/widgets/enhanced_genre_chip.dart';
+import 'package:movie_stream_app/src/presentation/shared/widgets/enhanced_movie_card.dart';
+import 'package:movie_stream_app/src/presentation/shared/widgets/error_display.dart';
+import 'package:movie_stream_app/src/presentation/shared/widgets/shimmer_widget.dart';
 
-import '../../core/constants/app_constants.dart';
-import '../../core/providers/movie_provider.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_typography.dart';
-import '../widgets/app_search_bar.dart';
-import '../widgets/enhanced_genre_chip.dart';
-import '../widgets/enhanced_movie_card.dart';
-import '../widgets/error_display.dart';
-import '../widgets/shimmer_widget.dart';
-import 'filter_screen.dart';
-import 'movie_detail_screen.dart';
-
-class HomeScreen extends ConsumerStatefulWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
   final List<String> _featuredQueries = [
     'avengers',
@@ -30,7 +30,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     'spider',
     'marvel',
   ];
-  // Removed unused _currentFeaturedIndex
+  String _selectedGenre = 'All';
 
   @override
   void initState() {
@@ -41,7 +41,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   void _initializeData() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(movieSearchProvider.notifier).searchMovies(_featuredQueries[0]);
+      context.read<MovieSearchBloc>().add(
+        MovieSearchRequested(_featuredQueries[0]),
+      );
     });
   }
 
@@ -49,11 +51,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
           _scrollController.position.maxScrollExtent - 200) {
-        final state = ref.read(movieSearchProvider);
+        final state = context.read<MovieSearchBloc>().state;
         if (!state.isLoadingMore && !state.hasReachedMax) {
-          ref
-              .read(movieSearchProvider.notifier)
-              .searchMovies(state.query, loadMore: true);
+          context.read<MovieSearchBloc>().add(const MovieSearchLoadMore());
         }
       }
     });
@@ -128,7 +128,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   context,
                   PageRouteBuilder(
                     pageBuilder: (context, animation, _) =>
-                        const FilterScreen(),
+                        const EnhancedFilterScreen(),
                     transitionsBuilder: (context, animation, _, child) {
                       return SlideTransition(
                         position: animation.drive(
@@ -146,7 +146,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               },
               onChanged: (query) {
                 if (query.isNotEmpty) {
-                  ref.read(movieSearchProvider.notifier).searchMovies(query);
+                  context.read<MovieSearchBloc>().add(
+                    MovieSearchRequested(query),
+                  );
                 }
               },
             ),
@@ -157,7 +159,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildGenreChips() {
-    final selectedGenre = ref.watch(currentGenreProvider);
+    final selectedGenre = _selectedGenre;
 
     return AnimationConfiguration.staggeredList(
       position: 1,
@@ -169,15 +171,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             genres: AppConstants.genres.take(8).toList(),
             selectedGenre: selectedGenre,
             onGenreSelected: (genre) {
-              ref.read(currentGenreProvider.notifier).state = genre;
+              setState(() => _selectedGenre = genre);
               if (genre == 'All') {
-                ref
-                    .read(movieSearchProvider.notifier)
-                    .searchMovies(_featuredQueries[0]);
+                context.read<MovieSearchBloc>().add(
+                  MovieSearchRequested(_featuredQueries[0]),
+                );
               } else {
-                ref
-                    .read(movieSearchProvider.notifier)
-                    .searchMovies(genre.toLowerCase());
+                context.read<MovieSearchBloc>().add(
+                  MovieSearchRequested(genre.toLowerCase()),
+                );
               }
             },
           ),
@@ -187,7 +189,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildFeaturedCarousel() {
-    final movieState = ref.watch(movieSearchProvider);
+    final movieState = context.watch<MovieSearchBloc>().state;
 
     return AnimationConfiguration.staggeredList(
       position: 2,
@@ -259,7 +261,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildMovieHorizontalList(String sectionKey) {
-    final movieState = ref.watch(movieSearchProvider);
+    final movieState = context.watch<MovieSearchBloc>().state;
 
     return AnimationConfiguration.staggeredList(
       position: 4,
@@ -320,7 +322,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       context,
       PageRouteBuilder(
         pageBuilder: (context, animation, _) =>
-            MovieDetailScreen(imdbID: imdbId, heroTag: heroTag),
+            EnhancedMovieDetailScreen(imdbID: imdbId, heroTag: heroTag),
         transitionsBuilder: (context, animation, _, child) {
           return FadeTransition(
             opacity: animation.drive(CurveTween(curve: Curves.easeInOut)),

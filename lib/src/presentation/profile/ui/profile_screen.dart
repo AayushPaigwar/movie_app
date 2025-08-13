@@ -6,18 +6,13 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile & Settings'),
-      ),
+      appBar: AppBar(title: const Text('Profile & Settings')),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF0E0E0E),
-              Color(0xFF1A1A1A),
-            ],
+            colors: [Color(0xFF0E0E0E), Color(0xFF1A1A1A)],
           ),
         ),
         child: Padding(
@@ -33,8 +28,14 @@ class ProfileScreen extends StatelessWidget {
               Card(
                 child: ListTile(
                   leading: const Icon(Icons.person, color: Colors.amber),
-                  title: Text('User Name', style: Theme.of(context).textTheme.titleSmall),
-                  subtitle: Text('John Doe', style: Theme.of(context).textTheme.bodyMedium),
+                  title: Text(
+                    'User Name',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  subtitle: Text(
+                    'John Doe',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                   onTap: () {
                     // TODO: Edit profile
                   },
@@ -43,8 +44,14 @@ class ProfileScreen extends StatelessWidget {
               Card(
                 child: ListTile(
                   leading: const Icon(Icons.email, color: Colors.amber),
-                  title: Text('Email', style: Theme.of(context).textTheme.titleSmall),
-                  subtitle: Text('john.doe@example.com', style: Theme.of(context).textTheme.bodyMedium),
+                  title: Text(
+                    'Email',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  subtitle: Text(
+                    'john.doe@example.com',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                   onTap: () {
                     // TODO: Edit email
                   },
@@ -59,7 +66,10 @@ class ProfileScreen extends StatelessWidget {
               Card(
                 child: ListTile(
                   leading: const Icon(Icons.notifications, color: Colors.amber),
-                  title: Text('Notifications', style: Theme.of(context).textTheme.titleSmall),
+                  title: Text(
+                    'Notifications',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                   trailing: Switch(
                     value: true,
                     onChanged: (value) {
@@ -71,7 +81,10 @@ class ProfileScreen extends StatelessWidget {
               Card(
                 child: ListTile(
                   leading: const Icon(Icons.dark_mode, color: Colors.amber),
-                  title: Text('Dark Mode', style: Theme.of(context).textTheme.titleSmall),
+                  title: Text(
+                    'Dark Mode',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                   trailing: Switch(
                     value: true,
                     onChanged: (value) {

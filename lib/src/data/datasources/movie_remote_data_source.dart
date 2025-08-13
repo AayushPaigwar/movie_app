@@ -5,7 +5,13 @@ import 'package:http/http.dart' as http;
 import 'package:movie_stream_app/src/data/models/movie_model.dart';
 
 abstract class MovieRemoteDataSource {
-  Future<List<MovieModel>> searchMovies(String query, {String? type, String? year, int page = 1});
+  // Search movies
+  Future<List<MovieModel>> searchMovies(
+    String query, {
+    String? type,
+    String? year,
+    int page = 1,
+  });
   Future<MovieModel> getMovieDetail(String id);
 }
 
@@ -18,7 +24,13 @@ class MovieRemoteDataSourceImpl implements MovieRemoteDataSource {
   final String? _baseUrl = dotenv.env['OMDB_BASE_URL'];
 
   @override
-  Future<List<MovieModel>> searchMovies(String query, {String? type, String? year, int page = 1}) async {
+  // Search movies
+  Future<List<MovieModel>> searchMovies(
+    String query, {
+    String? type,
+    String? year,
+    int page = 1,
+  }) async {
     var url = '$_baseUrl?s=$query&apikey=$_apiKey&page=$page';
     if (type != null) {
       url += '&type=$type';
@@ -44,9 +56,11 @@ class MovieRemoteDataSourceImpl implements MovieRemoteDataSource {
   }
 
   @override
+  // Get movie detail
   Future<MovieModel> getMovieDetail(String id) async {
-    final response =
-        await client.get(Uri.parse('$_baseUrl?i=$id&apikey=$_apiKey'));
+    final response = await client.get(
+      Uri.parse('$_baseUrl?i=$id&apikey=$_apiKey'),
+    );
 
     if (response.statusCode == 200) {
       return MovieModel.fromJson(json.decode(response.body));

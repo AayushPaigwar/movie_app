@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import '../../core/providers/movie_provider.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_typography.dart';
-import '../../core/constants/app_constants.dart';
-import '../widgets/enhanced_search_result_card.dart';
-import '../widgets/shimmer_widget.dart';
-import '../widgets/app_search_bar.dart';
-import '../widgets/error_display.dart';
-import 'movie_detail_screen.dart';
+import 'package:movie_stream_app/src/core/constants/app_constants.dart';
+import 'package:movie_stream_app/src/core/theme/app_colors.dart';
+import 'package:movie_stream_app/src/core/theme/app_typography.dart';
+import 'package:movie_stream_app/src/logic/movie_search/movie_search_bloc.dart';
+import 'package:movie_stream_app/src/logic/movie_search/movie_search_event.dart';
+import 'package:movie_stream_app/src/logic/movie_search/movie_search_state.dart';
+import 'package:movie_stream_app/src/presentation/movie_detail/ui/enhanced_movie_detail_screen.dart';
+import 'package:movie_stream_app/src/presentation/shared/widgets/app_search_bar.dart';
+import 'package:movie_stream_app/src/presentation/shared/widgets/enhanced_search_result_card.dart';
+import 'package:movie_stream_app/src/presentation/shared/widgets/error_display.dart';
+import 'package:movie_stream_app/src/presentation/shared/widgets/shimmer_widget.dart';
 
-class SearchScreen extends ConsumerStatefulWidget {
+class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
 
   @override
-  ConsumerState<SearchScreen> createState() => _SearchScreenState();
+  State<SearchScreen> createState() => _SearchScreenState();
 }
 
-class _SearchScreenState extends ConsumerState<SearchScreen>
+class _SearchScreenState extends State<SearchScreen>
     with TickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
@@ -50,12 +52,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
           _scrollController.position.maxScrollExtent - 200) {
-        final state = ref.read(movieSearchProvider);
-        if (!state.isLoadingMore && !state.hasReachedMax && _currentQuery.isNotEmpty) {
-          ref.read(movieSearchProvider.notifier).searchMovies(
-            _currentQuery,
-            loadMore: true,
-          );
+        final state = context.read<MovieSearchBloc>().state;
+        if (!state.isLoadingMore &&
+            !state.hasReachedMax &&
+            _currentQuery.isNotEmpty) {
+          context.read<MovieSearchBloc>().add(const MovieSearchLoadMore());
         }
       }
     });
@@ -72,7 +73,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
 
   @override
   Widget build(BuildContext context) {
-    final searchState = ref.watch(movieSearchProvider);
+    final searchState = context.watch<MovieSearchBloc>().state;
 
     return Scaffold(
       body: Container(
@@ -105,7 +106,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
         verticalOffset: -50.0,
         child: FadeInAnimation(
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppConstants.paddingLarge,
+            ),
             child: Column(
               children: [
                 Row(
@@ -137,7 +140,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
                         style: IconButton.styleFrom(
                           backgroundColor: AppColors.surfaceContainer,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                            borderRadius: BorderRadius.circular(
+                              AppConstants.radiusMedium,
+                            ),
                           ),
                         ),
                       ),
@@ -182,9 +187,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
     }
 
     if (state.error != null && state.movies.isEmpty) {
-      return Center(
-        child: ErrorDisplay(message: state.error!),
-      );
+      return Center(child: ErrorDisplay(message: state.error!));
     }
 
     if (state.movies.isEmpty) {
@@ -193,9 +196,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
 
     return AnimatedSwitcher(
       duration: AppConstants.animationMedium,
-      child: _isGridView
-          ? _buildGridView(state)
-          : _buildListView(state),
+      child: _isGridView ? _buildGridView(state) : _buildListView(state),
     );
   }
 
@@ -259,10 +260,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
               borderRadius: AppConstants.radiusLarge,
             ),
           )
-        : ListShimmer(
-            itemCount: 5,
-            shimmerItem: const SearchResultShimmer(),
-          );
+        : ListShimmer(itemCount: 5, shimmerItem: const SearchResultShimmer());
   }
 
   Widget _buildNoResultsState() {
@@ -309,9 +307,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
       itemCount: state.movies.length + (state.isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == state.movies.length) {
-          return const Padding(
-            padding: EdgeInsets.all(AppConstants.paddingLarge),
-            child: Center(child: CircularProgressIndicator()),
+          return Padding(
+            padding: const EdgeInsets.all(AppConstants.paddingLarge),
+            child: ShimmerWidget(
+              width: double.infinity,
+              height: 100,
+              borderRadius: AppConstants.radiusLarge,
+            ),
           );
         }
 
@@ -369,9 +371,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
     });
 
     if (_currentQuery.isNotEmpty) {
-      ref.read(movieSearchProvider.notifier).searchMovies(_currentQuery);
+      context.read<MovieSearchBloc>().add(MovieSearchRequested(_currentQuery));
     } else {
-      ref.read(movieSearchProvider.notifier).clearSearch();
+      context.read<MovieSearchBloc>().add(const MovieSearchRequested(''));
     }
   }
 
@@ -385,12 +387,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
     Navigator.push(
       context,
       PageRouteBuilder(
-        pageBuilder: (context, animation, _) => MovieDetailScreen(imdbID: imdbId),
+        pageBuilder: (context, animation, _) =>
+            EnhancedMovieDetailScreen(imdbID: imdbId),
         transitionsBuilder: (context, animation, _, child) {
           return FadeTransition(
-            opacity: animation.drive(
-              CurveTween(curve: Curves.easeInOut),
-            ),
+            opacity: animation.drive(CurveTween(curve: Curves.easeInOut)),
             child: child,
           );
         },

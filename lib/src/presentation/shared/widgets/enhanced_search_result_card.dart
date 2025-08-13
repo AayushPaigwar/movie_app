@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_typography.dart';
-import '../../core/constants/app_constants.dart';
-import 'shimmer_widget.dart';
+import 'package:movie_stream_app/src/core/constants/app_constants.dart';
+import 'package:movie_stream_app/src/core/theme/app_colors.dart';
+import 'package:movie_stream_app/src/core/theme/app_typography.dart';
+import 'package:movie_stream_app/src/presentation/shared/widgets/shimmer_widget.dart';
 
 class EnhancedSearchResultCard extends StatelessWidget {
   final String title;
@@ -50,7 +50,9 @@ class EnhancedSearchResultCard extends StatelessWidget {
                   padding: const EdgeInsets.all(AppConstants.paddingMedium),
                   decoration: BoxDecoration(
                     color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
+                    borderRadius: BorderRadius.circular(
+                      AppConstants.radiusLarge,
+                    ),
                     boxShadow: const [AppColors.shadowMedium],
                     border: Border.all(
                       color: AppColors.outline.withValues(alpha: 0.3),
@@ -87,7 +89,7 @@ class EnhancedSearchResultCard extends StatelessWidget {
         child: CachedNetworkImage(
           imageUrl: posterUrl,
           fit: BoxFit.cover,
-          placeholder: (context, url) => ShimmerWidget(
+          placeholder: (context, url) => const ShimmerWidget(
             width: 100,
             height: 140,
             borderRadius: AppConstants.radiusMedium,
@@ -155,11 +157,7 @@ class EnhancedSearchResultCard extends StatelessWidget {
               const Spacer(),
               Row(
                 children: [
-                  const Icon(
-                    Icons.star,
-                    size: 16,
-                    color: AppColors.primary,
-                  ),
+                  const Icon(Icons.star, size: 16, color: AppColors.primary),
                   const SizedBox(width: 4),
                   Text(
                     rating!.toStringAsFixed(1),
@@ -266,8 +264,8 @@ class SearchResultGrid extends StatelessWidget {
                     Expanded(
                       child: Container(
                         width: double.infinity,
-                        decoration: BoxDecoration(
-                          borderRadius: const BorderRadius.vertical(
+                        decoration: const BoxDecoration(
+                          borderRadius: BorderRadius.vertical(
                             top: Radius.circular(AppConstants.radiusLarge),
                           ),
                         ),
@@ -278,16 +276,18 @@ class SearchResultGrid extends StatelessWidget {
                           child: CachedNetworkImage(
                             imageUrl: posterUrl,
                             fit: BoxFit.cover,
-                            placeholder: (context, url) => ShimmerWidget(
+                            placeholder: (context, url) => const ShimmerWidget(
                               width: double.infinity,
                               height: double.infinity,
                               borderRadius: AppConstants.radiusLarge,
                             ),
                             errorWidget: (context, url, error) => Container(
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: AppColors.surfaceContainer,
-                                borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(AppConstants.radiusLarge),
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(
+                                    AppConstants.radiusLarge,
+                                  ),
                                 ),
                               ),
                               child: const Center(
@@ -333,7 +333,9 @@ class SearchResultGrid extends StatelessWidget {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(alpha: 0.2),
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.2,
+                                  ),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(

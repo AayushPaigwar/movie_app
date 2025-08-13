@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:movie_stream_app/src/core/constants/app_constants.dart';
+import 'package:movie_stream_app/src/core/theme/app_colors.dart';
 import 'package:shimmer/shimmer.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/constants/app_constants.dart';
 
 class ShimmerWidget extends StatelessWidget {
   final double width;
@@ -84,7 +84,7 @@ class CarouselShimmer extends StatelessWidget {
         itemBuilder: (context, index) {
           return Container(
             margin: const EdgeInsets.symmetric(horizontal: 6),
-            child: ShimmerWidget(
+            child: const ShimmerWidget(
               width: double.infinity,
               height: AppConstants.carouselHeight,
               borderRadius: AppConstants.radiusExtraLarge,
@@ -108,7 +108,7 @@ class SearchResultShimmer extends StatelessWidget {
       ),
       child: Row(
         children: [
-          ShimmerWidget(
+          const ShimmerWidget(
             width: 100,
             height: 140,
             borderRadius: AppConstants.radiusMedium,
@@ -118,32 +118,32 @@ class SearchResultShimmer extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ShimmerWidget(
+                const ShimmerWidget(
                   width: double.infinity,
                   height: 20,
                   borderRadius: AppConstants.radiusSmall,
                 ),
                 const SizedBox(height: AppConstants.paddingSmall),
-                ShimmerWidget(
+                const ShimmerWidget(
                   width: 150,
                   height: 16,
                   borderRadius: AppConstants.radiusSmall,
                 ),
                 const SizedBox(height: AppConstants.paddingSmall),
-                ShimmerWidget(
+                const ShimmerWidget(
                   width: 100,
                   height: 16,
                   borderRadius: AppConstants.radiusSmall,
                 ),
                 const SizedBox(height: AppConstants.paddingMedium),
                 Row(
-                  children: [
+                  children: const [
                     ShimmerWidget(
                       width: 60,
                       height: 24,
                       borderRadius: AppConstants.radiusMedium,
                     ),
-                    const SizedBox(width: AppConstants.paddingSmall),
+                    SizedBox(width: AppConstants.paddingSmall),
                     ShimmerWidget(
                       width: 40,
                       height: 16,
@@ -164,11 +164,7 @@ class ListShimmer extends StatelessWidget {
   final int itemCount;
   final Widget shimmerItem;
 
-  const ListShimmer({
-    super.key,
-    this.itemCount = 5,
-    required this.shimmerItem,
-  });
+  const ListShimmer({super.key, this.itemCount = 5, required this.shimmerItem});
 
   @override
   Widget build(BuildContext context) {

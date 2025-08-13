@@ -11,7 +11,11 @@ class EmptyDisplay extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.sentiment_dissatisfied, color: Colors.grey, size: 50),
+          const Icon(
+            Icons.sentiment_dissatisfied,
+            color: Colors.grey,
+            size: 50,
+          ),
           const SizedBox(height: 16),
           Text(
             message,

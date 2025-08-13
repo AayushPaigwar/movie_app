@@ -1,23 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import '../../core/providers/movie_provider.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_typography.dart';
-import '../../core/constants/app_constants.dart';
-import '../widgets/enhanced_search_result_card.dart';
-import '../widgets/shimmer_widget.dart';
-import '../widgets/error_display.dart';
-import 'movie_detail_screen.dart';
+import 'package:movie_stream_app/src/core/constants/app_constants.dart';
+import 'package:movie_stream_app/src/core/theme/app_colors.dart';
+import 'package:movie_stream_app/src/core/theme/app_typography.dart';
+import 'package:movie_stream_app/src/logic/favorites/favorites_bloc.dart';
+import 'package:movie_stream_app/src/logic/favorites/favorites_event.dart';
+import 'package:movie_stream_app/src/logic/favorites/favorites_state.dart';
+import 'package:movie_stream_app/src/presentation/movie_detail/ui/enhanced_movie_detail_screen.dart';
+import 'package:movie_stream_app/src/presentation/shared/widgets/enhanced_search_result_card.dart';
+import 'package:movie_stream_app/src/presentation/shared/widgets/error_display.dart';
+import 'package:movie_stream_app/src/presentation/shared/widgets/shimmer_widget.dart';
 
-class EnhancedFavoritesScreen extends ConsumerStatefulWidget {
+class EnhancedFavoritesScreen extends StatefulWidget {
   const EnhancedFavoritesScreen({super.key});
 
   @override
-  ConsumerState<EnhancedFavoritesScreen> createState() => _EnhancedFavoritesScreenState();
+  State<EnhancedFavoritesScreen> createState() =>
+      _EnhancedFavoritesScreenState();
 }
 
-class _EnhancedFavoritesScreenState extends ConsumerState<EnhancedFavoritesScreen>
+class _EnhancedFavoritesScreenState extends State<EnhancedFavoritesScreen>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -43,7 +46,7 @@ class _EnhancedFavoritesScreenState extends ConsumerState<EnhancedFavoritesScree
 
   void _loadFavorites() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(favoritesProvider.notifier).loadFavorites();
+      context.read<FavoritesBloc>().add(const FavoritesRequested());
     });
   }
 
@@ -55,7 +58,7 @@ class _EnhancedFavoritesScreenState extends ConsumerState<EnhancedFavoritesScree
 
   @override
   Widget build(BuildContext context) {
-    final favoritesState = ref.watch(favoritesProvider);
+    final favoritesState = context.watch<FavoritesBloc>().state;
 
     return Scaffold(
       body: Container(
@@ -70,9 +73,7 @@ class _EnhancedFavoritesScreenState extends ConsumerState<EnhancedFavoritesScree
           child: Column(
             children: [
               _buildHeader(favoritesState),
-              Expanded(
-                child: _buildContent(favoritesState),
-              ),
+              Expanded(child: _buildContent(favoritesState)),
             ],
           ),
         ),
@@ -100,10 +101,11 @@ class _EnhancedFavoritesScreenState extends ConsumerState<EnhancedFavoritesScree
                         children: [
                           Text(
                             'My Watchlist',
-                            style: AppTypography.textTheme.headlineMedium?.copyWith(
-                              color: AppColors.textPrimary,
-                              fontWeight: FontWeight.w700,
-                            ),
+                            style: AppTypography.textTheme.headlineMedium
+                                ?.copyWith(
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w700,
+                                ),
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -119,7 +121,9 @@ class _EnhancedFavoritesScreenState extends ConsumerState<EnhancedFavoritesScree
                       Container(
                         decoration: BoxDecoration(
                           color: AppColors.surfaceContainer,
-                          borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                          borderRadius: BorderRadius.circular(
+                            AppConstants.radiusMedium,
+                          ),
                         ),
                         child: IconButton(
                           onPressed: _toggleViewMode,
@@ -160,9 +164,7 @@ class _EnhancedFavoritesScreenState extends ConsumerState<EnhancedFavoritesScree
       opacity: _fadeAnimation,
       child: AnimatedSwitcher(
         duration: AppConstants.animationMedium,
-        child: _isGridView
-            ? _buildGridView(state)
-            : _buildListView(state),
+        child: _isGridView ? _buildGridView(state) : _buildListView(state),
       ),
     );
   }
@@ -253,7 +255,6 @@ class _EnhancedFavoritesScreenState extends ConsumerState<EnhancedFavoritesScree
             const SizedBox(height: AppConstants.paddingLarge),
             ElevatedButton.icon(
               onPressed: () {
-                // Navigate back to allow user to go to home screen
                 Navigator.of(context).pop();
               },
               icon: const Icon(Icons.explore),
@@ -274,7 +275,9 @@ class _EnhancedFavoritesScreenState extends ConsumerState<EnhancedFavoritesScree
   Widget _buildListView(FavoritesState state) {
     return AnimationLimiter(
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppConstants.paddingMedium,
+        ),
         itemCount: state.movies.length,
         itemBuilder: (context, index) {
           final movie = state.movies[index];
@@ -289,13 +292,17 @@ class _EnhancedFavoritesScreenState extends ConsumerState<EnhancedFavoritesScree
                   direction: DismissDirection.endToStart,
                   background: Container(
                     alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: AppConstants.paddingLarge),
+                    padding: const EdgeInsets.only(
+                      right: AppConstants.paddingLarge,
+                    ),
                     margin: const EdgeInsets.symmetric(
                       vertical: AppConstants.paddingSmall,
                     ),
                     decoration: BoxDecoration(
                       color: AppColors.error,
-                      borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.radiusLarge,
+                      ),
                     ),
                     child: const Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -383,7 +390,7 @@ class _EnhancedFavoritesScreenState extends ConsumerState<EnhancedFavoritesScree
   }
 
   void _removeFavorite(String imdbId) {
-    ref.read(favoritesProvider.notifier).removeFavorite(imdbId);
+    context.read<FavoritesBloc>().add(FavoriteRemoved(imdbId));
   }
 
   void _showRemovedSnackBar(String movieTitle) {
@@ -397,7 +404,6 @@ class _EnhancedFavoritesScreenState extends ConsumerState<EnhancedFavoritesScree
         ),
         action: SnackBarAction(
           label: 'Undo',
-          textColor: AppColors.primary,
           onPressed: () {
             // TODO: Implement undo functionality
           },
@@ -410,12 +416,11 @@ class _EnhancedFavoritesScreenState extends ConsumerState<EnhancedFavoritesScree
     Navigator.push(
       context,
       PageRouteBuilder(
-        pageBuilder: (context, animation, _) => MovieDetailScreen(imdbID: imdbId),
+        pageBuilder: (context, animation, _) =>
+            EnhancedMovieDetailScreen(imdbID: imdbId),
         transitionsBuilder: (context, animation, _, child) {
           return FadeTransition(
-            opacity: animation.drive(
-              CurveTween(curve: Curves.easeInOut),
-            ),
+            opacity: animation.drive(CurveTween(curve: Curves.easeInOut)),
             child: child,
           );
         },

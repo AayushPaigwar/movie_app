@@ -1,11 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-
-import '../../core/constants/app_constants.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_typography.dart';
-import 'shimmer_widget.dart';
+import 'package:movie_stream_app/src/core/constants/app_constants.dart';
+import 'package:movie_stream_app/src/core/theme/app_colors.dart';
+import 'package:movie_stream_app/src/core/theme/app_typography.dart';
+import 'package:movie_stream_app/src/presentation/shared/widgets/shimmer_widget.dart';
 
 class EnhancedMovieCard extends StatelessWidget {
   final String title;
@@ -115,7 +114,6 @@ class EnhancedMovieCard extends StatelessWidget {
         children: [
           Text(
             title,
-
             style: AppTypography.movieTitle.copyWith(
               color: AppColors.textPrimary,
             ),
@@ -230,7 +228,7 @@ class EnhancedCarouselCard extends StatelessWidget {
                     CachedNetworkImage(
                       imageUrl: posterUrl,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => CarouselShimmer(),
+                      placeholder: (context, url) => const CarouselShimmer(),
                       errorWidget: (context, url, error) => Container(
                         decoration: BoxDecoration(
                           color: AppColors.surfaceContainer,
@@ -255,8 +253,8 @@ class EnhancedCarouselCard extends StatelessWidget {
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            Colors.black.withValues(alpha: 0.3),
-                            Colors.black.withValues(alpha: 0.8),
+                            Colors.black54,
+                            Colors.black87,
                           ],
                           stops: const [0.3, 0.7, 1.0],
                         ),
@@ -275,15 +273,6 @@ class EnhancedCarouselCard extends StatelessWidget {
                                 ?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
-                                  shadows: [
-                                    Shadow(
-                                      offset: const Offset(0, 2),
-                                      blurRadius: 4,
-                                      color: Colors.black.withValues(
-                                        alpha: 0.5,
-                                      ),
-                                    ),
-                                  ],
                                 ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -293,18 +282,7 @@ class EnhancedCarouselCard extends StatelessWidget {
                             Text(
                               description!,
                               style: AppTypography.textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: Colors.white.withValues(alpha: 0.9),
-                                    shadows: [
-                                      Shadow(
-                                        offset: const Offset(0, 1),
-                                        blurRadius: 2,
-                                        color: Colors.black.withValues(
-                                          alpha: 0.5,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                  ?.copyWith(color: Colors.white),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),

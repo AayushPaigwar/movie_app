@@ -8,11 +8,24 @@ class MovieRepositoryImpl implements MovieRepository {
   final MovieRemoteDataSource remoteDataSource;
   final MovieLocalDataSource localDataSource;
 
-  MovieRepositoryImpl({required this.remoteDataSource, required this.localDataSource});
+  MovieRepositoryImpl({
+    required this.remoteDataSource,
+    required this.localDataSource,
+  });
 
   @override
-  Future<List<Movie>> searchMovies(String query, {String? type, String? year, int page = 1}) async {
-    return await remoteDataSource.searchMovies(query, type: type, year: year, page: page);
+  Future<List<Movie>> searchMovies(
+    String query, {
+    String? type,
+    String? year,
+    int page = 1,
+  }) async {
+    return await remoteDataSource.searchMovies(
+      query,
+      type: type,
+      year: year,
+      page: page,
+    );
   }
 
   @override

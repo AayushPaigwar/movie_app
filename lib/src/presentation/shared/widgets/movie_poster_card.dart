@@ -56,7 +56,7 @@ class MoviePosterCard extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.55),
+                          color: Colors.black54,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
