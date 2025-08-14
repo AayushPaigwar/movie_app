@@ -1,4 +1,4 @@
-# Movie Stream App
+# Movie App
 
 Minimal production Flutter app (OMDb API) with search, filters, favorites, rich detail view. Bloc + Clean Architecture.
 
